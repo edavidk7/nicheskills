@@ -11,15 +11,39 @@ This skill gives agents GitHub access with nothing to install beyond the officia
 - **User-verifiable:** every action is a plain shell command in the transcript, so the user can read it, rerun it, or audit it. Anything visible to others waits for the user's OK (see "Running gh from an agent").
 - **Locally delegated:** the agent acts through the user's own `gh auth` login on their machine, with exactly that account's permissions. No third-party service gets a token.
 
-**Use `gh` for all GitHub operations, even if GitHub MCP tools are also available.** Verify `gh` is installed and authenticated before proceeding.
+**Use `gh` for all GitHub operations, even if GitHub MCP tools are also available.**
 
-## Pre-flight Check
+## First Use: Getting Set Up
+Run this once per session, before the first GitHub operation. Speak like a helpful colleague: each message is one or two short sentences covering what you found, what's needed (if anything), and the exact next step. Run the check quietly and report only the result.
 
+When something needs fixing, open with this note, once:
+> Quick note: I work with GitHub through the official `gh` CLI, using your own login on this machine. Nothing goes through a third-party service, and you'll see every command I run.
+
+If everything is already fine, skip the note and just confirm (see the last case below).
+
+### Check
+This prints the account name and permissions, never the token:
 ```bash
-gh auth status
+if ! command -v gh >/dev/null; then echo "gh: missing"; else
+  echo "gh: $(gh --version | head -1 | awk '{print $3}')"
+  s=$(gh auth status --active --json hosts --jq '.hosts[][] | "login: \(.login) | state: \(.state) | via: \(.tokenSource) | git: \(.gitProtocol) | scopes: \(.scopes)"' 2>/dev/null)
+  echo "${s:-login: none}"
+fi
 ```
 
-If not authenticated, instruct the user to run `gh auth login`.
+### What to do with the result
+- **`gh: missing`:** say *"You don't have the GitHub CLI yet. It's a one-line install:"* and give the command for their OS:
+  - macOS: `brew install gh`
+  - Windows: `winget install --id GitHub.cli`
+  - Linux: the package from https://github.com/cli/cli#installation
+
+  Offer to run it for them. Then run the check again.
+- **`login: none`:** say *"`gh` is installed, but you're not logged in yet. Login is interactive, so it needs you at the keyboard. Please run `! gh auth login` and pick GitHub.com and your browser. Let me know when you're done."* In other harnesses, ask them to run `gh auth login` in a terminal. Never ask them to paste a token into the chat. Then run the check again.
+- **`state: error` with `via: GH_TOKEN` or `GITHUB_TOKEN`:** say *"There's a `GH_TOKEN` in your environment that GitHub doesn't accept, and it overrides your normal login. Could you remove or update it?"*
+- **`state: error`, any other source:** say *"Your GitHub login has expired. Please run `! gh auth refresh` to renew it."*
+- **A command fails later for lack of permission, e.g. `refusing to allow … without workflow scope`:** say *"Your login doesn't include the `<scope>` permission, which this needs. Please run `! gh auth refresh -s <scope>` to add it."* This applies to git pushes only with `git: https`. With `git: ssh`, git pushes use the SSH key, not these permissions.
+- **`git: https` and a plain `git push` or `git fetch` asks for a password or fails to authenticate:** offer *"Shall I connect git to your `gh` login? That's `gh auth setup-git`."* Run it only after they agree, because it changes their git config.
+- **`state: success`:** confirm briefly and hand back, for example *"You're set up as **edavidk7** on GitHub. What would you like to do?"*
 
 ## Running gh from an agent
 
