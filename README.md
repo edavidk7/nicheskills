@@ -1,4 +1,4 @@
-# nicheskills
+# nicheskills 💅
 
 Install all:
 
