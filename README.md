@@ -11,3 +11,8 @@ Install one:
 ```bash
 npx skills add edavidk7/nicheskills --skill overleaf-link
 ```
+
+## Skills
+
+<!-- skills:start -->
+<!-- skills:end -->

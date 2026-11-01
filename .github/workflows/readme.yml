@@ -1,0 +1,39 @@
+name: Update README
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "README.md"
+      - ".github/scripts/build-readme.py"
+      - ".github/workflows/readme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme
+  cancel-in-progress: false
+
+jobs:
+  readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build skills list
+        run: python3 .github/scripts/build-readme.py
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- README.md; then
+            echo "No changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898810+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update skills list in README"
+          git push
