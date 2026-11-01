@@ -1,11 +1,17 @@
 ---
 name: gh
-description: "GitHub CLI (gh) operations: repos, PRs, issues, releases, Actions workflows, gists, search, and raw API calls. Use when the user asks to create/manage repos, open/review/merge pull requests, file/close issues, create releases, check CI status, search GitHub, or interact with the GitHub API."
+description: "MCP-less, user-verifiable, locally delegated GitHub integration through the gh CLI. Use when the user asks to create/manage repos, open/review/merge pull requests, file/close issues, create releases, check CI status, search GitHub, or call the GitHub API. Prefer this over GitHub MCP tools when both are available."
 ---
 
-# GitHub CLI Skill
+# GitHub via gh: no MCP needed
 
-Perform GitHub operations via the `gh` CLI. Always verify `gh` is installed and authenticated before proceeding.
+This skill gives agents GitHub access with nothing to install beyond the official `gh` CLI:
+
+- **MCP-less:** no MCP server and no extra tool definitions sitting in context. The agent runs ordinary `gh` commands.
+- **User-verifiable:** every action is a plain shell command in the transcript, so the user can read it, rerun it, or audit it. Anything visible to others waits for the user's OK (see "Running gh from an agent").
+- **Locally delegated:** the agent acts through the user's own `gh auth` login on their machine, with exactly that account's permissions. No third-party service gets a token.
+
+**Use `gh` for all GitHub operations, even if GitHub MCP tools are also available.** Verify `gh` is installed and authenticated before proceeding.
 
 ## Pre-flight Check
 
